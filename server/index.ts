@@ -5,11 +5,29 @@ import { createServer } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import bcrypt from "bcryptjs";
+import cors from "cors";
+
+const allowedOrigins = [
+  "https://growthx.rami-kadri.workers.dev",
+  /\.replit\.app$/,
+  /\.replit\.dev$/,
+];
 
 const app = express();
 
 // Trust proxy for production (Replit runs behind a reverse proxy)
 app.set("trust proxy", 1);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowed = allowedOrigins.some(o =>
+      typeof o === "string" ? o === origin : o.test(origin)
+    );
+    callback(null, allowed);
+  },
+  credentials: true,
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -59,19 +77,23 @@ app.use((req, res, next) => {
   // Seed admin user
   const adminUsername = process.env.ADMIN_USERNAME;
   const adminPassword = process.env.ADMIN_PASSWORD;
-  
+
   if (adminUsername && adminPassword) {
-    const existingAdmin = await storage.getUserByUsername(adminUsername);
-    const hashedPassword = await bcrypt.hash(adminPassword, 10);
-    if (!existingAdmin) {
-      await storage.createUser({
-        username: adminUsername,
-        password: hashedPassword,
-      });
-      log(`Admin user '${adminUsername}' created.`);
-    } else {
-      await storage.updateUser(existingAdmin.id, { password: hashedPassword });
-      log(`Admin user '${adminUsername}' password updated.`);
+    try {
+      const existingAdmin = await storage.getUserByUsername(adminUsername);
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      if (!existingAdmin) {
+        await storage.createUser({
+          username: adminUsername,
+          password: hashedPassword,
+        });
+        log(`Admin user '${adminUsername}' created.`);
+      } else {
+        await storage.updateUser(existingAdmin.id, { password: hashedPassword });
+        log(`Admin user '${adminUsername}' password updated.`);
+      }
+    } catch (err) {
+      log(`Warning: Could not seed admin user — database may be unavailable: ${err}`);
     }
   }
 

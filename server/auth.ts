@@ -20,24 +20,27 @@ import { type User as SelectUser } from "@shared/schema";
 export async function setupAuth(app: express.Express) {
   const PostgresStore = connectPgSimple(session);
 
-  await db.execute(sql`
-    CREATE TABLE IF NOT EXISTS "session" (
-      "sid" varchar NOT NULL COLLATE "default",
-      "sess" json NOT NULL,
-      "expire" timestamp(6) NOT NULL,
-      CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
-    ) WITH (OIDS=FALSE)
-  `);
-  await db.execute(sql`
-    CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire")
-  `);
+  let sessionStore: session.Store | undefined;
+  try {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "session" (
+        "sid" varchar NOT NULL COLLATE "default",
+        "sess" json NOT NULL,
+        "expire" timestamp(6) NOT NULL,
+        CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+      ) WITH (OIDS=FALSE)
+    `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON "session" ("expire")
+    `);
+    sessionStore = new PostgresStore({ pool, tableName: "session" });
+  } catch (err) {
+    console.warn("Warning: Could not set up PostgreSQL session store, falling back to memory store:", err);
+  }
 
   app.use(
     session({
-      store: new PostgresStore({
-        pool,
-        tableName: "session",
-      }),
+      ...(sessionStore ? { store: sessionStore } : {}),
       secret: process.env.SESSION_SECRET || "growthx-secret",
       resave: false,
       saveUninitialized: false,

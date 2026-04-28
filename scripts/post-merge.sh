@@ -1,4 +1,3 @@
 #!/bin/bash
-set -e
 npm install
-npm run db:push
+npm run db:push || echo "Warning: db:push failed (database may be temporarily unavailable)"
