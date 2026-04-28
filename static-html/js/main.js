@@ -1,6 +1,6 @@
 // GrowthX Arabia - Main JavaScript
 const API_BASE = (window.location.hostname.endsWith('.workers.dev') || window.location.hostname.endsWith('.pages.dev'))
-  ? 'https://d646d448-bbb2-4986-ab97-03d7be64ab33-00-11agqrmvoijn7.picard.replit.dev/api'
+  ? 'https://growthx-arabia-or-digital-transformation.onrender.com/api'
   : '/api';
 
 // Security: Escape HTML to prevent XSS
