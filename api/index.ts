@@ -62,13 +62,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const { firstName, lastName, email, website, message } = validationResult.data;
       
-      const result = await sql`
-        INSERT INTO contact_submissions (first_name, last_name, email, website, message)
-        VALUES (${firstName}, ${lastName}, ${email}, ${website || null}, ${message})
-        RETURNING *
-      `;
-      
-      return res.status(201).json(result[0]);
+      try {
+        const result = await sql`
+          INSERT INTO contact_submissions (first_name, last_name, email, website, message)
+          VALUES (${firstName}, ${lastName}, ${email}, ${website || null}, ${message})
+          RETURNING *
+        `;
+        
+        return res.status(201).json(result[0]);
+      } catch (error: any) {
+        console.error('Contact submission error:', error);
+        return res.status(500).json({ error: 'Failed to submit contact form' });
+      }
     }
 
     // POST /api/newsletter
@@ -89,10 +94,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `;
         return res.status(201).json(result[0]);
       } catch (error: any) {
-        if (error.code === '23505') {
+        console.error('Newsletter error:', error);
+        if (error.code === '23505' || error.message?.includes('duplicate')) {
           return res.status(409).json({ error: 'Email already subscribed' });
         }
-        throw error;
+        return res.status(500).json({ error: 'Failed to subscribe to newsletter' });
       }
     }
 
@@ -106,21 +112,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       const data = validationResult.data;
       
-      const result = await sql`
-        INSERT INTO leads (
-          selected_service, company_name, website, industry, budget_range, 
-          timeline, project_description, first_name, last_name, email, phone, prefer_whatsapp
-        )
-        VALUES (
-          ${data.selectedService}, ${data.companyName}, ${data.website || null}, 
-          ${data.industry}, ${data.budgetRange}, ${data.timeline}, 
-          ${data.projectDescription || null}, ${data.firstName}, ${data.lastName}, 
-          ${data.email}, ${data.phone || null}, ${data.preferWhatsApp}
-        )
-        RETURNING *
-      `;
-      
-      return res.status(201).json(result[0]);
+      try {
+        const result = await sql`
+          INSERT INTO leads (
+            selected_service, company_name, website, industry, budget_range, 
+            timeline, project_description, first_name, last_name, email, phone, prefer_whatsapp
+          )
+          VALUES (
+            ${data.selectedService}, ${data.companyName}, ${data.website || null}, 
+            ${data.industry}, ${data.budgetRange}, ${data.timeline}, 
+            ${data.projectDescription || null}, ${data.firstName}, ${data.lastName}, 
+            ${data.email}, ${data.phone || null}, ${data.preferWhatsApp}
+          )
+          RETURNING *
+        `;
+        
+        return res.status(201).json(result[0]);
+      } catch (error: any) {
+        console.error('Lead submission error:', error);
+        return res.status(500).json({ error: 'Failed to submit lead form' });
+      }
     }
 
     // GET /api/sitemap.xml
