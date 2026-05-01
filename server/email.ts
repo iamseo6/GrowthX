@@ -1,9 +1,17 @@
 // Resend email client integration
 import { Resend } from 'resend';
 
-let connectionSettings: any;
-
 async function getCredentials() {
+  // Try direct RESEND_API_KEY first (Vercel deployment)
+  const directApiKey = process.env.RESEND_API_KEY;
+  if (directApiKey) {
+    return { 
+      apiKey: directApiKey, 
+      fromEmail: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev' 
+    };
+  }
+
+  // Fallback to Replit connectors
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
   const xReplitToken = process.env.REPL_IDENTITY 
     ? 'repl ' + process.env.REPL_IDENTITY 
@@ -11,11 +19,11 @@ async function getCredentials() {
     ? 'depl ' + process.env.WEB_REPL_RENEWAL 
     : null;
 
-  if (!xReplitToken) {
-    throw new Error('X_REPLIT_TOKEN not found for repl/depl');
+  if (!xReplitToken || !hostname) {
+    throw new Error('No Resend API key or Replit connector available');
   }
 
-  connectionSettings = await fetch(
+  const connectionSettings = await fetch(
     'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=resend',
     {
       headers: {
@@ -32,10 +40,10 @@ async function getCredentials() {
 }
 
 export async function getResendClient() {
-  const { apiKey } = await getCredentials();
+  const { apiKey, fromEmail } = await getCredentials();
   return {
     client: new Resend(apiKey),
-    fromEmail: 'onboarding@resend.dev'
+    fromEmail
   };
 }
 
