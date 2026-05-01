@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertContactSubmissionSchema, insertNewsletterSchema, insertLeadSchema } from "@shared/schema";
+import { insertContactSubmissionSchema, insertNewsletterSchema, insertLeadSchema } from "../shared/schema";
 import { fromError } from "zod-validation-error";
 import { isAuthenticated } from "./auth";
 import { sendContactNotification, sendLeadNotification } from "./email";

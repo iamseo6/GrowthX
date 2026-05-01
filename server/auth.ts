@@ -5,7 +5,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
 import connectPgSimple from "connect-pg-simple";
 import { storage } from "./storage";
-import { type User } from "@shared/schema";
+import { type User } from "../shared/schema";
 import { db, pool } from "./db";
 import { sql } from "drizzle-orm";
 
@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-import { type User as SelectUser } from "@shared/schema";
+import { type User as SelectUser } from "../shared/schema";
 
 export async function setupAuth(app: express.Express) {
   const PostgresStore = connectPgSimple(session);
