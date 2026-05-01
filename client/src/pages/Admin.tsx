@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ContactSubmission, Lead, NewsletterSubscriber } from "@shared/schema";
+import { ContactSubmission, Lead, NewsletterSubscriber } from "@/lib/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, LogOut, Users, MessageSquare, Trash2, Mail } from "lucide-react";
