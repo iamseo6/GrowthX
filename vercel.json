@@ -1,12 +1,9 @@
 {
   "buildCommand": "npm run build:client",
   "outputDirectory": "dist/public",
-  "framework": null,
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.ts" }
-  ],
-  "routes": [
-    { "src": "^/api/(.*)", "dest": "/api/index.ts" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
